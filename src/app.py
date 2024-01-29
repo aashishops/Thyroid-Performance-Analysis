@@ -1,15 +1,31 @@
 import streamlit as st
-import joblib
+import pickle as pkl
 import numpy as np
 import pandas as pd
 from tensorflow.keras.models import load_model
 
 
+#modelpath=r'E:\College\2nd year\Winter project\Thyroid-Performance-Analysis\SAVED_MODEL'
+modelpath=r'C:\Users\dwija\OneDrive\Thyroid-Performance-Analysis\SAVED_MODEL'
+with open(modelpath + r'\models.pkl', 'rb') as file:
+    models = pkl.load(file)
+#annpath=r'E:\College\2nd year\Winter project\Thyroid-Performance-Analysis\SAVED_MODEL\ann_model.h5'
+annpath=r'C:\Users\dwija\OneDrive\Thyroid-Performance-Analysis\SAVED_MODEL\ANN_model.h5'
+ann_model = load_model(annpath)
+#lstmpath=r'E:\College\2nd year\Winter project\Thyroid-Performance-Analysis\SAVED_MODEL\lstm_model.h5'
+lstmpath=r'C:\Users\dwija\OneDrive\Thyroid-Performance-Analysis\SAVED_MODEL\LSTM_model.h5'
+lstm_model = load_model(lstmpath)
 
-models = joblib.load(r'E:\College\2nd year\Winter project\Thyroid-Performance-Analysis\SAVED_MODEL\models.pkl')
-ann_model = load_model(r'E:\College\2nd year\Winter project\Thyroid-Performance-Analysis\SAVED_MODEL\ann_model.h5')
-lstm_model = load_model(r'E:\College\2nd year\Winter project\Thyroid-Performance-Analysis\SAVED_MODEL\lstm_model.h5')
 
+def map_to_thyroid_condition(prediction):
+    if prediction == 0:
+        return "Negative"
+    elif prediction == 1:
+        return "Hypothyroidism"
+    elif prediction == 2:
+        return "Hyperthyroidism"
+    else:
+        return "Invalid Prediction"
 def main():
     st.title("Thyroid Prediction App")
 
@@ -46,59 +62,59 @@ def main():
 
     true_value = st.selectbox("Select true value", ['Negative', 'Hypothyroidism', 'Hyperthyroidism'])
 
-
-    user_input = np.array([age, 1 if on_thyroxine == 'Yes' else 0, 1 if query_on_thyroxine == 'Yes' else 0,
-                           1 if on_antithyroid_medication == 'Yes' else 0, 1 if sick == 'Yes' else 0,
-                           1 if pregnant == 'Yes' else 0, 1 if thyroid_surgery == 'Yes' else 0,
-                           1 if I131_treatment == 'Yes' else 0, 1 if query_hypothyroid == 'Yes' else 0,
-                           1 if query_hyperthyroid == 'Yes' else 0, 1 if lithium == 'Yes' else 0,
-                           1 if goitre == 'Yes' else 0, 1 if tumor == 'Yes' else 0, 1 if hypopituitary == 'Yes' else 0,
-                           1 if psych == 'Yes' else 0, 1 if TSH_measured == 'Yes' else 0, TSH,
-                           1 if T3_measured == 'Yes' else 0, T3, 1 if TT4_measured == 'Yes' else 0, TT4,
-                           1 if T4U_measured == 'Yes' else 0, T4U, 1 if FTI_measured == 'Yes' else 0, FTI])
-
-  
-    ann_prediction = int(np.round(ann_model.predict(user_input.reshape(1, -1))[0][0]))
+    if st.button("Predict"):
+        user_input = np.array([age, 1 if on_thyroxine == 'Yes' else 0, 1 if query_on_thyroxine == 'Yes' else 0,
+                            1 if on_antithyroid_medication == 'Yes' else 0, 1 if sick == 'Yes' else 0,
+                            1 if pregnant == 'Yes' else 0, 1 if thyroid_surgery == 'Yes' else 0,
+                            1 if I131_treatment == 'Yes' else 0, 1 if query_hypothyroid == 'Yes' else 0,
+                            1 if query_hyperthyroid == 'Yes' else 0, 1 if lithium == 'Yes' else 0,
+                            1 if goitre == 'Yes' else 0, 1 if tumor == 'Yes' else 0, 1 if hypopituitary == 'Yes' else 0,
+                            1 if psych == 'Yes' else 0, 1 if TSH_measured == 'Yes' else 0, TSH,
+                            1 if T3_measured == 'Yes' else 0, T3, 1 if TT4_measured == 'Yes' else 0, TT4,
+                            1 if T4U_measured == 'Yes' else 0, T4U, 1 if FTI_measured == 'Yes' else 0, FTI])
 
     
-    user_input_lstm = user_input.reshape((1, 1, user_input.shape[0]))
-    lstm_prediction = int(np.round(lstm_model.predict(user_input_lstm)[0][0]))
+        ann_prediction = int(np.round(ann_model.predict(user_input.reshape(1, -1))[0][0]))
+
+        
+        user_input_lstm = user_input.reshape((1, 1, user_input.shape[0]))
+        lstm_prediction = int(np.round(lstm_model.predict(user_input_lstm)[0][0]))
 
 
-    other_model_predictions = {}
-    for model_name, model in models.items():
-        prediction = int(np.round(model.predict(user_input.reshape(1, -1))[0]))
-        other_model_predictions[model_name] = prediction
-    def map_to_thyroid_condition(prediction):
-        if prediction == 0:
-            return "Negative"
-        elif prediction == 1:
-            return "Hypothyroidism"
-        elif prediction == 2:
-            return "Hyperthyroidism"
+        other_model_predictions = {}
+        for model_name, model in models.items():
+            prediction = int(np.round(model.predict(user_input.reshape(1, -1))[0]))
+            other_model_predictions[model_name] = prediction
+        def map_to_thyroid_condition(prediction):
+            if prediction == 0:
+                return "Negative"
+            elif prediction == 1:
+                return "Hypothyroidism"
+            elif prediction == 2:
+                return "Hyperthyroidism"
+            else:
+                return "Invalid Prediction"
+
+    
+        ann_condition = map_to_thyroid_condition(ann_prediction)
+        if ann_condition == true_value:
+            st.success(f"ANN Prediction: {ann_condition}")
         else:
-            return "Invalid Prediction"
+            st.error(f"ANN Prediction: {ann_condition}",)
 
-   
-    ann_condition = map_to_thyroid_condition(ann_prediction)
-    if ann_condition == true_value:
-        st.success(f"ANN Prediction: {ann_condition}")
-    else:
-        st.error(f"ANN Prediction: {ann_condition}",)
-
-    lstm_condition = map_to_thyroid_condition(lstm_prediction)
-    if lstm_condition == true_value:
-        st.success(f"LSTM Prediction: {lstm_condition}")
-    else:
-        st.error(f"LSTM Prediction: {lstm_condition}")
-
-    st.subheader("Other Models Predictions:")
-    for model_name, prediction in other_model_predictions.items():
-        condition = map_to_thyroid_condition(prediction)
-        if condition == true_value  :
-            st.success(f"{model_name} Prediction: {condition}")
+        lstm_condition = map_to_thyroid_condition(lstm_prediction)
+        if lstm_condition == true_value:
+            st.success(f"LSTM Prediction: {lstm_condition}")
         else:
-            st.error(f"{model_name} Prediction: {condition}")
+            st.error(f"LSTM Prediction: {lstm_condition}")
+
+        st.subheader("Other Models Predictions:")
+        for model_name, prediction in other_model_predictions.items():
+            condition = map_to_thyroid_condition(prediction)
+            if condition == true_value  :
+                st.success(f"{model_name} Prediction: {condition}")
+            else:
+                st.error(f"{model_name} Prediction: {condition}")
 
 
 if __name__ == "__main__":
