@@ -108,7 +108,7 @@ def main():
         else:
             st.error(f"LSTM Prediction: {lstm_condition}")
 
-        st.subheader("Other Models Predictions:")
+        
         for model_name, prediction in other_model_predictions.items():
             condition = map_to_thyroid_condition(prediction)
             if condition == true_value  :
