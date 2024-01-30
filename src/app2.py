@@ -60,7 +60,7 @@ def main():
     FTI = st.number_input("FTI", value=103.0)
 
 
-    true_value = st.selectbox("Select true value", ['Negative', 'Hypothyroidism', 'Hyperthyroidism'])
+    
 
     if st.button("Predict"):
         user_input = np.array([age, 1 if on_thyroxine == 'Yes' else 0, 1 if query_on_thyroxine == 'Yes' else 0,
@@ -93,28 +93,24 @@ def main():
             elif prediction == 2:
                 return "Hyperthyroidism"
             else:
-                return "Invalid Prediction"
+                return "Invalid Prediction" 
 
     
         ann_condition = map_to_thyroid_condition(ann_prediction)
-        if ann_condition == true_value:
-            st.success(f"ANN Prediction: {ann_condition}")
-        else:
-            st.error(f"ANN Prediction: {ann_condition}",)
+        
+        st.write(f"ANN Prediction: {ann_condition}")
+        
 
         lstm_condition = map_to_thyroid_condition(lstm_prediction)
-        if lstm_condition == true_value:
-            st.success(f"LSTM Prediction: {lstm_condition}")
-        else:
-            st.error(f"LSTM Prediction: {lstm_condition}")
-
+        
+        st.write(f"LSTM Prediction: {lstm_condition}")
+        
         
         for model_name, prediction in other_model_predictions.items():
             condition = map_to_thyroid_condition(prediction)
-            if condition == true_value  :
-                st.success(f"{model_name} Prediction: {condition}")
-            else:
-                st.error(f"{model_name} Prediction: {condition}")
+           
+            st.write(f"{model_name} Prediction: {condition}")
+      
 
 
 if __name__ == "__main__":
